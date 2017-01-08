@@ -1,8 +1,12 @@
 require 'rails_helper'
 
 RSpec.feature "Createing Articles" do 
+  before do 
+    @john = User.create!(email: "test@gmail.com", password: 123456)
+  end
   scenario "A user creates a new article" do 
     visit "/"
+    sign_in(@john, scope: @john)
     click_link "New Article"
     fill_in "Title", with: "Creating a article"
     fill_in "Body", with: "Telsa Testserersr"
