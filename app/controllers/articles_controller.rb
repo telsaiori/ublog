@@ -1,19 +1,19 @@
 class ArticlesController < ApplicationController
   before_action :set_article, only: [:show, :edit, :update, :destroy]
-  before_action :authenticate_user!, except: [:index, :show]
+  before_action :authenticate_user!, except: [:index, :show, :update, :destroy]
   
   def index
     @articles = Article.all
   end
 
   def new
-    @article = Article.new
+    @article = current_user.articles.build
   end
 
   def create
-    @article = Article.new(article_params)
+    @article = current_user.articles.build(article_params)
     if @article.save
-      redirect_to articles_path, notice: "Article has been created"
+      redirect_to article_path(@article), notice: "Article has been created"
     else
       flash.now[:warning] = 'Article has not been created'
       render 'new'
@@ -25,22 +25,34 @@ class ArticlesController < ApplicationController
   end
 
   def edit
+    unless @article.user == current_user
+      flash[:alert] = "You can only edit your own article."
+      redirect_to root_path
+    end
   end
 
   def update
-    if @article.update(article_params)
-      redirect_to article_path(@article), notice: "Article has been updated"
+    unless @article.user == current_user
+      flash[:danger] = "You can only edit your own article."
+      redirect_to root_path
     else
-      flash.now[:alert] = "Article has not been updated"
-      render 'edit'
+      if @article.update(article_params)
+        redirect_to article_path(@article), notice: "Article has been updated"
+      else
+        flash.now[:alert] = "Article has not been updated"
+        render 'edit'
+      end
     end
   end
 
   def destroy
-   if @article.destroy
-    redirect_to root_path, notice: "Article has been deleted"
-   end
-
+    unless @article.user == current_user
+      redirect_to root_path, alert: "You can only delete your own article"
+    else
+       if @article.destroy
+        redirect_to root_path, notice: "Article has been deleted"
+       end
+    end
   end
 
   protected
