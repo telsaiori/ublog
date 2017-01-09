@@ -1,6 +1,7 @@
 class CommentsController < ApplicationController
   before_action :set_article, only: [:create]
   before_action :comment_params, only: [:create]
+  before_action :authenticate_user!
   
   def new
   end
@@ -9,10 +10,11 @@ class CommentsController < ApplicationController
     @comment = @article.comments.build(comment_params)
     @comment.user = current_user
     if @comment.save
-      redirect_to article_path(@article), notice: 'Comment has been created'
+      flash[:notice] = 'Comment has been created'
     else
-      flash.now[:alert] = 'Comment has not been created'
+      flash[:alert] = 'Comment has not been created'
     end
+    redirect_to article_path(@article)
   end
 
   private
